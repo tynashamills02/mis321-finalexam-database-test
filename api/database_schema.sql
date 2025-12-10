@@ -72,3 +72,4 @@ INSERT INTO Users (Username, Email, PasswordHash) VALUES
 -- (1, 2, 'Buy groceries', 'Milk, eggs, bread, vegetables', 'Medium', 'Pending', DATE_ADD(NOW(), INTERVAL 2 DAY)),
 -- (1, 4, 'Morning workout', '30 minutes cardio and strength training', 'Medium', 'Pending', DATE_ADD(NOW(), INTERVAL 1 DAY));
 
+

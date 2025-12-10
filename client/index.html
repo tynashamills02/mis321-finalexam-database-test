@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .task-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 4px solid;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .priority-low { border-left-color: #28a745; }
+        .priority-medium { border-left-color: #ffc107; }
+        .priority-high { border-left-color: #fd7e14; }
+        .priority-urgent { border-left-color: #dc3545; }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .category-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .completed-task {
+            opacity: 0.7;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar navbar-dark bg-primary">
+            <div class="container-fluid">
+                <span class="navbar-brand mb-0 h1">
+                    <i class="bi bi-check2-square"></i> Task Manager
+                </span>
+                <div id="userInfo" class="text-white d-none">
+                    <span id="usernameDisplay"></span>
+                    <button class="btn btn-sm btn-outline-light ms-2" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Login/Register Section -->
+        <div id="authSection" class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active text-white" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link text-white" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">Register</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <!-- Login Tab -->
+                                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                                    <form id="loginForm" onsubmit="handleLogin(event)">
+                                        <div class="mb-3">
+                                            <label for="loginUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="loginUsername" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="loginPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="loginPassword" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 mb-2">Login</button>
+                                        <div class="text-center">
+                                            <small class="text-muted">Don't have an account? 
+                                                <a href="#" class="text-primary" onclick="event.preventDefault(); document.getElementById('register-tab').click();">Register here</a>
+                                            </small>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- Register Tab -->
+                                <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                                    <form id="registerForm" onsubmit="handleRegister(event)">
+                                        <div class="mb-3">
+                                            <label for="registerUsername" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="registerUsername" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="registerEmail" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="registerEmail" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="registerPassword" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="registerPassword" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 mb-2">Register</button>
+                                        <div class="text-center">
+                                            <small class="text-muted">Already have an account? 
+                                                <a href="#" class="text-primary" onclick="event.preventDefault(); document.getElementById('login-tab').click();">Login here</a>
+                                            </small>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Task Manager Section -->
+        <div id="taskSection" class="container mt-4 d-none">
+            <!-- Filter and Add Task Section -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                        <select class="form-select" id="statusFilter" onchange="loadTasks()">
+                            <option value="all">All Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <select class="form-select" id="priorityFilter" onchange="loadTasks()">
+                            <option value="all">All Priorities</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                        <select class="form-select" id="categoryFilter" onchange="loadTasks()">
+                            <option value="all">All Categories</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-primary" onclick="showAddTaskModal()">
+                        <i class="bi bi-plus-circle"></i> Add New Task
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tasks Display -->
+            <div id="tasksContainer" class="row">
+                <!-- Tasks will be dynamically inserted here -->
+            </div>
+
+            <div id="noTasksMessage" class="text-center text-muted mt-5 d-none">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-3">No tasks found. Create your first task!</p>
+            </div>
+        </div>
+
+        <!-- Add/Edit Task Modal -->
+        <div class="modal fade" id="taskModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="taskModalTitle">Add New Task</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="taskForm" onsubmit="handleTaskSubmit(event)">
+                            <input type="hidden" id="taskId">
+                            <div class="mb-3">
+                                <label for="taskTitle" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="taskTitle" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="taskCategory" class="form-label">Category</label>
+                                    <select class="form-select" id="taskCategory">
+                                        <option value="">None</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="taskPriority" class="form-label">Priority</label>
+                                    <select class="form-select" id="taskPriority">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskStatus" class="form-label">Status</label>
+                                <select class="form-select" id="taskStatus">
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskDueDate" class="form-label">Due Date</label>
+                                <input type="datetime-local" class="form-control" id="taskDueDate">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Task</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="resources/scripts/app.js"></script>
+</body>
+</html>
+
